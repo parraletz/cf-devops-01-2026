@@ -1,0 +1,77 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 05-deployment-con-config.yaml
+#
+# Deployment avanzado: monta el ConfigMap como volumen y expone
+# variables de entorno desde él. Demuestra cómo separar la
+# configuración del código (12-Factor App, factor III).
+#
+# Requiere haber aplicado primero:
+#   kubectl apply -f 04-configmap.yaml -n cf-demo
+#
+# Aplicar:
+#   kubectl apply -f 05-deployment-con-config.yaml -n cf-demo
+#
+# Verificar que el HTML personalizado está montado:
+#   kubectl exec -it <pod-name> -n cf-demo -- cat /usr/share/nginx/html/index.html
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-con-config
+  namespace: cf-demo
+  labels:
+    app: nginx-con-config
+    clase: "clase10"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-con-config
+  template:
+    metadata:
+      labels:
+        app: nginx-con-config
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+          # ── Variables de entorno desde ConfigMap ──────────
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: nginx-config      # nombre del ConfigMap
+                  key: APP_ENV            # clave dentro del ConfigMap
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: nginx-config
+                  key: APP_NAME
+
+          # ── Volumen: monta el index.html del ConfigMap ────
+          volumeMounts:
+            - name: html-vol
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html         # Solo monta este archivo
+
+      # ── Declaración del volumen ───────────────────────────
+      volumes:
+        - name: html-vol
+          configMap:
+            name: nginx-config
+            items:
+              - key: index.html           # Clave en el ConfigMap
+                path: index.html          # Nombre del archivo montado

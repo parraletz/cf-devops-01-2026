@@ -1,0 +1,42 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: kustomization.yaml
+#
+# Kustomize: herramienta built-in de kubectl (desde K8s 1.14)
+# para gestionar conjuntos de manifests sin Helm.
+#
+# Aplicar TODO de una vez:
+#   kubectl apply -k .
+#
+# Ver qué se va a aplicar (dry-run):
+#   kubectl kustomize .
+#
+# Eliminar todo:
+#   kubectl delete -k .
+#
+# O aplicar archivos individualmente en orden:
+#   kubectl apply -f 00-namespace.yaml
+#   kubectl apply -f 01-deployment.yaml        -n cf-demo
+#   kubectl apply -f 02-service-clusterip.yaml -n cf-demo
+#   kubectl apply -f 03-service-loadbalancer.yaml -n cf-demo
+# ============================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Namespace por defecto para todos los recursos (excepto el Namespace mismo)
+namespace: cf-demo
+
+resources:
+  - 00-namespace.yaml
+  - 01-deployment.yaml
+  - 02-service-clusterip.yaml
+  - 03-service-loadbalancer.yaml
+  - 04-configmap.yaml
+  - 05-deployment-con-config.yaml
+
+# ── Labels comunes aplicados a todos los recursos ────────────
+commonLabels:
+  managed-by: "codigofacilito"
+  clase: "clase10"
+  environment: "dev"

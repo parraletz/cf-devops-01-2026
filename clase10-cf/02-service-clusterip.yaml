@@ -1,0 +1,51 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 02-service-clusterip.yaml
+#
+# Service ClusterIP: expone el Deployment INTERNAMENTE dentro
+# del cluster. Asigna una IP virtual estable (VIP) que balancea
+# el tráfico entre todos los Pods del selector.
+#
+# ┌──────────────────────────────────────────────────────────┐
+# │  Dentro del cluster:                                     │
+# │  curl http://nginx          → puerto 80                  │
+# │  curl http://nginx.cf-demo  → (cross-namespace)         │
+# │  curl http://nginx.cf-demo.svc.cluster.local             │
+# └──────────────────────────────────────────────────────────┘
+#
+# NO es accesible desde fuera del cluster.
+# Para acceso externo ver: 03-service-loadbalancer.yaml
+#
+# Aplicar:
+#   kubectl apply -f 02-service-clusterip.yaml -n cf-demo
+#
+# Verificar:
+#   kubectl get svc nginx-clusterip -n cf-demo
+#   kubectl describe svc nginx-clusterip -n cf-demo
+#
+# Probar desde dentro del cluster (crear Pod temporal):
+#   kubectl run test --image=curlimages/curl -it --rm \
+#     -- curl http://nginx-clusterip.cf-demo
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-clusterip
+  namespace: cf-demo
+  labels:
+    app: nginx
+    clase: "clase10"
+spec:
+  # ClusterIP es el tipo por defecto
+  type: ClusterIP
+
+  # ── Selector: a qué Pods dirigir el tráfico ──────────────
+  selector:
+    app: nginx               # Coincide con los Pods del Deployment
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80               # Puerto del Service (lo que se llama)
+      targetPort: 80         # Puerto del contenedor (containerPort)

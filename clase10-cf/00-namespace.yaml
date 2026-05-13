@@ -1,0 +1,24 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 00-namespace.yaml
+#
+# Namespace: espacio de trabajo aislado dentro del cluster.
+# Todos los recursos de esta clase viven bajo "cf-demo".
+#
+# Aplicar:
+#   kubectl apply -f 00-namespace.yaml
+# Eliminar todo lo del namespace:
+#   kubectl delete namespace cf-demo
+# ============================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cf-demo
+  labels:
+    # Etiqueta de quién gestiona este namespace
+    managed-by: "codigofacilito"
+    # Clase a la que pertenece
+    clase: "clase10"
+    # Entorno (dev | staging | prod)
+    environment: "dev"

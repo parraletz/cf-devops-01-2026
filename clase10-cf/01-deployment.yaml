@@ -1,0 +1,88 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 01-deployment.yaml
+#
+# Deployment: controlador que garantiza que N réplicas del Pod
+# estén siempre corriendo. Si un Pod muere, el ReplicaSet
+# lo vuelve a crear automáticamente (self-healing).
+#
+# Aplicar:
+#   kubectl apply -f 01-deployment.yaml -n cf-demo
+#
+# Verificar:
+#   kubectl get deployment nginx -n cf-demo
+#   kubectl get pods -n cf-demo -l app=nginx
+#   kubectl describe deployment nginx -n cf-demo
+#
+# Escalar manualmente:
+#   kubectl scale deployment nginx --replicas=4 -n cf-demo
+#
+# Ver logs de un Pod:
+#   kubectl logs -l app=nginx -n cf-demo
+# ============================================================
+
+apiVersion: apps/v1    # API estable desde K8s 1.9
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: cf-demo
+  labels:
+    app: nginx
+    clase: "clase10"
+spec:
+  # ── Número de réplicas deseadas ──────────────────────────
+  replicas: 2
+
+  # ── Selector: qué Pods administra este Deployment ────────
+  selector:
+    matchLabels:
+      app: nginx
+
+  # ── Estrategia de actualización ──────────────────────────
+  strategy:
+    type: RollingUpdate          # Actualiza Pods de uno en uno
+    rollingUpdate:
+      maxSurge: 1                # Permite 1 Pod extra durante el update
+      maxUnavailable: 0          # Nunca baja de las réplicas deseadas
+
+  # ── Plantilla del Pod ────────────────────────────────────
+  template:
+    metadata:
+      labels:
+        app: nginx               # Debe coincidir con spec.selector
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine   # Imagen estable y ligera (~45 MB)
+          # image: nginx:latest      # Alternativa: siempre la más reciente
+
+          ports:
+            - containerPort: 80
+              protocol: TCP
+
+          # ── Recursos: siempre definir en producción ──────
+          resources:
+            requests:
+              cpu: "50m"         # 50 milli-CPUs garantizados
+              memory: "64Mi"     # 64 MiB garantizados
+            limits:
+              cpu: "200m"        # Máximo 0.2 CPUs
+              memory: "128Mi"    # Máximo 128 MiB
+
+          # ── Health checks ────────────────────────────────
+          # readinessProbe: K8s no envía tráfico hasta que el Pod esté listo
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5   # Espera 5s antes del primer chequeo
+            periodSeconds: 10        # Chequea cada 10s
+
+          # livenessProbe: K8s reinicia el Pod si no responde
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            failureThreshold: 3      # Reinicia después de 3 fallos

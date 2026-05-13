@@ -1,0 +1,65 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 03-service-loadbalancer.yaml
+#
+# Service LoadBalancer: expone el Deployment EXTERNAMENTE.
+# En un cloud provider (AWS/GCP/Azure) provisiona un LB real.
+# En Minikube se usa "minikube tunnel" para simular la IP externa.
+#
+# ┌──────────────────────────────────────────────────────────┐
+# │  Flujo de tráfico con minikube tunnel:                   │
+# │                                                          │
+# │  curl http://127.0.0.1                                   │
+# │       │                                                  │
+# │       ▼                                                  │
+# │  Service LoadBalancer (EXTERNAL-IP: 127.0.0.1:80)       │
+# │       │                                                  │
+# │       ▼  (round-robin)                                   │
+# │  Pod nginx-xxxx  ←──┐                                   │
+# │  Pod nginx-yyyy  ◄──┘                                   │
+# └──────────────────────────────────────────────────────────┘
+#
+# Pasos para probar en Minikube:
+#   1. kubectl apply -f 03-service-loadbalancer.yaml -n cf-demo
+#   2. En otra terminal: minikube tunnel   (requiere sudo/admin)
+#   3. kubectl get svc nginx-lb -n cf-demo  → ver EXTERNAL-IP
+#   4. curl http://<EXTERNAL-IP>
+#
+# Alternativa sin tunnel (port-forward):
+#   kubectl port-forward svc/nginx-lb 8080:80 -n cf-demo
+#   curl http://localhost:8080
+#
+# Aplicar:
+#   kubectl apply -f 03-service-loadbalancer.yaml -n cf-demo
+#
+# Verificar:
+#   kubectl get svc nginx-lb -n cf-demo
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+  namespace: cf-demo
+  labels:
+    app: nginx
+    clase: "clase10"
+  annotations:
+    # Anotación informativa — en AWS usaría:
+    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    codigofacilito.com/nota: "Requiere minikube tunnel para EXTERNAL-IP"
+spec:
+  type: LoadBalancer
+
+  # ── Selector: a qué Pods dirigir el tráfico ──────────────
+  selector:
+    app: nginx
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80               # Puerto externo del LoadBalancer
+      targetPort: 80         # Puerto del contenedor
+
+  # sessionAffinity: None    # Round-robin por defecto
+  # sessionAffinity: ClientIP  # Sticky sessions por IP cliente

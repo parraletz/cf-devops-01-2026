@@ -1,0 +1,56 @@
+# ============================================================
+# CLASE 10 — Kubernetes 1.31 · Código Facilito DevOps Bootcamp
+# Archivo: 04-configmap.yaml
+#
+# ConfigMap: almacena configuración NO sensible en el cluster.
+# Permite cambiar configuración sin reconstruir la imagen.
+#
+# Aquí se define un index.html personalizado que el Deployment
+# puede montar como volumen (ver: 05-deployment-con-config.yaml).
+#
+# Aplicar:
+#   kubectl apply -f 04-configmap.yaml -n cf-demo
+#
+# Verificar:
+#   kubectl get configmap nginx-config -n cf-demo
+#   kubectl describe configmap nginx-config -n cf-demo
+# ============================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: cf-demo
+  labels:
+    app: nginx
+    clase: "clase10"
+data:
+  # ── Archivos de configuración ─────────────────────────────
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Código Facilito — Clase 10 K8s</title>
+      <style>
+        body { font-family: 'DM Mono', monospace; background: #0C0E10;
+               color: #E8EDF2; display: flex; align-items: center;
+               justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #13161A; border-left: 4px solid #C8F060;
+                padding: 2rem 3rem; border-radius: 4px; }
+        h1 { color: #C8F060; margin: 0 0 .5rem; }
+        p  { color: #6B7580; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>¡Kubernetes funciona! 🚀</h1>
+        <p>Código Facilito · DevOps Bootcamp · Clase 10</p>
+        <p style="margin-top:.5rem;color:#5BE0C8">Pod: <strong>HOSTNAME</strong></p>
+      </div>
+    </body>
+    </html>
+
+  # ── Variables de entorno como key-value ───────────────────
+  APP_ENV: "dev"
+  APP_NAME: "cf-nginx-demo"
