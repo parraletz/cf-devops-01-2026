@@ -9,7 +9,7 @@ Manifests de Kubernetes listos para aplicar en un cluster local (Minikube) o en 
 
 ```
 cf-devops-01-2026/
-└── clase-kubernetes/          # Clase 10 & 12 — Kubernetes 1.31
+└── clase-kubernetes/          # Clases 11 & 12 — Kubernetes 1.31
     ├── 00-namespace.yaml
     ├── 01-deployment.yaml
     ├── 02-service-clusterip.yaml
@@ -167,4 +167,4 @@ kubectl delete -k clase-kubernetes/
 ## Curso
 
 **Bootcamp DevOps — Código Facilito**  
-Kubernetes 1.31 · Clases 10 y 12
+Kubernetes 1.31 · Clases 11 y 12
