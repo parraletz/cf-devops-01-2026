@@ -53,8 +53,8 @@ spec:
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
-                  name: nginx-config      # nombre del ConfigMap
-                  key: APP_ENV            # clave dentro del ConfigMap
+                  name: nginx-config # nombre del ConfigMap
+                  key: APP_ENV # clave dentro del ConfigMap
             - name: APP_NAME
               valueFrom:
                 configMapKeyRef:
@@ -65,7 +65,7 @@ spec:
           volumeMounts:
             - name: html-vol
               mountPath: /usr/share/nginx/html/index.html
-              subPath: index.html         # Solo monta este archivo
+              subPath: index.html # Solo monta este archivo
 
       # ── Declaración del volumen ───────────────────────────
       volumes:
@@ -73,5 +73,5 @@ spec:
           configMap:
             name: nginx-config
             items:
-              - key: index.html           # Clave en el ConfigMap
-                path: index.html          # Nombre del archivo montado
+              - key: index.html # Clave en el ConfigMap
+                path: index.html # Nombre del archivo montado
