@@ -1,6 +1,6 @@
 # ============================================================
 # CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
-# Stack: FastAPI + Prometheus + Grafana + Node Exporter
+# Stack: FastAPI + Prometheus + Grafana + Node Exporter + cAdvisor
 #
 # Levantar el stack completo:
 #   docker compose up -d
@@ -17,6 +17,7 @@
 #   /metrics      → http://localhost:8000/metrics
 #   Prometheus    → http://localhost:9090
 #   Grafana       → http://localhost:3000  (admin / admin)
+#   cAdvisor      → http://localhost:8080
 # ============================================================
 
 services:
@@ -80,6 +81,25 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── cAdvisor: métricas de contenedores Docker ──────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cf-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
     networks:
       - observability
     restart: unless-stopped

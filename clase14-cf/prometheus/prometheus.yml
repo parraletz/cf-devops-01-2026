@@ -70,3 +70,24 @@ scrape_configs:
     #   node_memory_MemAvailable_bytes
     #   node_filesystem_avail_bytes
     #   node_network_receive_bytes_total
+
+  # ── 4. cAdvisor: métricas de contenedores Docker ────────────
+  - job_name: 'cadvisor'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+    # Métricas clave:
+    #   container_cpu_usage_seconds_total{name, image}
+    #   container_memory_usage_bytes{name, image}
+    #   container_memory_working_set_bytes{name, image}
+    #   container_network_receive_bytes_total{name, interface}
+    #   container_network_transmit_bytes_total{name, interface}
+    #   container_fs_reads_bytes_total{name}
+    #   container_fs_writes_bytes_total{name}
+    # Filtro: name!="" excluye métricas del host raíz (id="/")
+    metric_relabel_configs:
+      - source_labels: [name]
+        regex: ''
+        action: drop
