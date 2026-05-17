@@ -51,7 +51,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "count(container_last_seen{name!=\"\", job=\"cadvisor\"})",
+          "expr": "count(container_last_seen{id!=\"\", job=\"cadvisor\"})",
           "legendFormat": "Contenedores",
           "refId": "A"
         }
@@ -92,7 +92,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum(rate(container_cpu_usage_seconds_total{name!=\"\", job=\"cadvisor\"}[1m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{id!=\"\", job=\"cadvisor\"}[1m]))",
           "legendFormat": "CPU Total",
           "refId": "A"
         }
@@ -133,7 +133,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum(container_memory_working_set_bytes{name!=\"\", job=\"cadvisor\"})",
+          "expr": "sum(container_memory_working_set_bytes{id!=\"\", job=\"cadvisor\"})",
           "legendFormat": "RAM Total",
           "refId": "A"
         }
@@ -170,7 +170,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum(rate(container_network_receive_bytes_total{name!=\"\", job=\"cadvisor\"}[1m])) + sum(rate(container_network_transmit_bytes_total{name!=\"\", job=\"cadvisor\"}[1m]))",
+          "expr": "sum(rate(container_network_receive_bytes_total{id!=\"\", job=\"cadvisor\"}[1m])) + sum(rate(container_network_transmit_bytes_total{id!=\"\", job=\"cadvisor\"}[1m]))",
           "legendFormat": "Red total",
           "refId": "A"
         }
@@ -219,8 +219,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "{{ name }}",
+"expr": "sum by (id) (rate(container_cpu_usage_seconds_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "{{ id }}",
           "refId": "A"
         }
       ],
@@ -264,8 +264,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_cpu_cfs_throttled_seconds_total{name!=\"\", job=\"cadvisor\"}[1m])) / sum by (name) (rate(container_cpu_cfs_periods_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "{{ name }}",
+"expr": "sum by (id) (rate(container_cpu_cfs_throttled_seconds_total{id!=\"\", job=\"cadvisor\"}[1m])) / sum by (id) (rate(container_cpu_cfs_periods_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "{{ id }}",
           "refId": "A"
         }
       ],
@@ -313,8 +313,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (container_memory_working_set_bytes{name!=\"\", job=\"cadvisor\"})",
-          "legendFormat": "{{ name }}",
+"expr": "sum by (id) (container_memory_working_set_bytes{id!=\"\", job=\"cadvisor\"})",
+           "legendFormat": "{{ id }}",
           "refId": "A"
         }
       ],
@@ -354,8 +354,8 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (container_memory_usage_bytes{name!=\"\", job=\"cadvisor\"})",
-          "legendFormat": "{{ name }}",
+"expr": "sum by (id) (container_memory_usage_bytes{id!=\"\", job=\"cadvisor\"})",
+           "legendFormat": "{{ id }}",
           "refId": "A"
         }
       ],
@@ -403,14 +403,14 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_network_receive_bytes_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "RX {{ name }}",
+"expr": "sum by (id) (rate(container_network_receive_bytes_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "RX {{ id }}",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_network_transmit_bytes_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "TX {{ name }}",
+"expr": "sum by (id) (rate(container_network_transmit_bytes_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "TX {{ id }}",
           "refId": "B"
         }
       ],
@@ -450,14 +450,14 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_fs_reads_bytes_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "Read {{ name }}",
+"expr": "sum by (id) (rate(container_fs_reads_bytes_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "Read {{ id }}",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "sum by (name) (rate(container_fs_writes_bytes_total{name!=\"\", job=\"cadvisor\"}[1m]))",
-          "legendFormat": "Write {{ name }}",
+"expr": "sum by (id) (rate(container_fs_writes_bytes_total{id!=\"\", job=\"cadvisor\"}[1m]))",
+           "legendFormat": "Write {{ id }}",
           "refId": "B"
         }
       ],
