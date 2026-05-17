@@ -51,9 +51,22 @@ docker compose down -v
 - Métricas HTTP: conteo, duración, requests activos
 - Métricas de negocio: items total, errores
 - Dashboards de Grafana preconfigurados
-- cAdvisor para métricas de contenedores
+- cAdvisor para métricas de contenedores y cgroups
 - Node Exporter para métricas del host
 - Pruebas de carga con Locust
+
+## ⚠️ Nota sobre el dashboard de Infra (cAdvisor)
+
+El dashboard "CF — Infraestructura (Docker + Host)" cuenta **cgroups**, no únicamente contenedores Docker reales. cAdvisor reporta todos los cgroups del sistema, incluyendo:
+
+- Contenedores Docker (cf-fastapi, etc.)
+- Pods de Kubernetes/Minikube (generan múltiples cgroups)
+- Servicios del sistema (system.slice)
+- Sesiones de usuario (user.slice)
+
+Actualmente muestra **~70 cgroups** porque minikube está ejecutando Kubernetes con muchos Pods, cada uno reportado como un cgroup distinto. El único contenedor Docker real corriendo es `cf-fastapi` (más minikube, grafana, prometheus, node-exporter, locust = 6 contenedores en total).
+
+Verifying: `docker ps -a` mostrará **7 contenedores reales**, pero cAdvisor mostrará **~70 cgroups**.
 
 ## 🎯 Endpoints de ejemplo
 
