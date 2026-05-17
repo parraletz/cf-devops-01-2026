@@ -1,0 +1,32 @@
+# ============================================================
+# CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
+# Grafana Provisioning: Datasource de Prometheus
+#
+# Este archivo se monta en /etc/grafana/provisioning/datasources/
+# y Grafana lo lee al arrancar, configurando automáticamente
+# el datasource sin necesidad de hacerlo manualmente en la UI.
+# ============================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    # URL interna del contenedor de Prometheus
+    url: http://prometheus:9090
+    # Datasource por defecto para nuevos dashboards
+    isDefault: true
+    # Acceso: proxy = Grafana hace las queries (recomendado)
+    access: proxy
+    # Editable desde la UI de Grafana
+    editable: false
+    uid: prometheus-uid
+    jsonData:
+      # Intervalo de scrape configurado en prometheus.yml
+      timeInterval: "15s"
+      # Habilitar Exemplars (para trazas con Tempo)
+      exemplarTraceIdDestinations: []
+      # Versión del API de Prometheus
+      prometheusVersion: "2.53.0"
+      # Habilitar métricas de Prometheus 2.x
+      prometheusType: "Prometheus"

@@ -1,0 +1,72 @@
+# ============================================================
+# CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
+# Configuración de Prometheus
+#
+# Prometheus hace "scrape" (pull) de métricas cada 15s desde:
+#   - app:8000/metrics         → FastAPI con prometheus_client
+#   - node-exporter:9100/metrics → Métricas del sistema operativo
+#   - localhost:9090/metrics   → El propio Prometheus (auto-monitoreo)
+# ============================================================
+
+global:
+  # Intervalo de scrape por defecto
+  scrape_interval: 15s
+  # Timeout para cada scrape
+  scrape_timeout: 10s
+  # Intervalo para evaluar reglas de alertas
+  evaluation_interval: 15s
+  # Labels que se añaden a TODAS las métricas recolectadas
+  external_labels:
+    monitor: 'cf-observabilidad'
+    environment: 'dev'
+
+# ── Reglas de alertas (opcional — archivo externo) ──────────
+# rule_files:
+#   - "alert_rules.yml"
+
+# ── Configuración de Alertmanager (opcional) ────────────────
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# ── Scrape configs ────────────────────────────────────────────
+scrape_configs:
+
+  # ── 1. Prometheus se monitorea a sí mismo ─────────────────
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    # Métricas útiles: prometheus_tsdb_*, prometheus_http_requests_total
+
+  # ── 2. FastAPI app instrumentada con prometheus_client ─────
+  - job_name: 'fastapi-app'
+    # Cada cuánto scrapear (override del global)
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['app:8000']
+        labels:
+          service: 'cf-fastapi'
+          language: 'python'
+    # Ruta del endpoint de métricas (por defecto /metrics)
+    metrics_path: '/metrics'
+    # Métricas generadas por la app:
+    #   http_requests_total{method, endpoint, status_code}
+    #   http_request_duration_seconds{method, endpoint}
+    #   http_requests_in_progress{method, endpoint}
+    #   app_items_total
+    #   app_errors_total{endpoint, error_type}
+    #   app_info{version, environment, name}
+
+  # ── 3. Node Exporter: métricas del OS (CPU, RAM, disco...) ─
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+    # Métricas clave:
+    #   node_cpu_seconds_total
+    #   node_memory_MemAvailable_bytes
+    #   node_filesystem_avail_bytes
+    #   node_network_receive_bytes_total

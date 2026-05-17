@@ -1,0 +1,116 @@
+# ============================================================
+# CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
+# Stack: FastAPI + Prometheus + Grafana + Node Exporter
+#
+# Levantar el stack completo:
+#   docker compose up -d
+#
+# Ver logs:
+#   docker compose logs -f
+#
+# Detener y limpiar:
+#   docker compose down -v
+#
+# URLs:
+#   FastAPI app   → http://localhost:8000
+#   FastAPI docs  → http://localhost:8000/docs
+#   /metrics      → http://localhost:8000/metrics
+#   Prometheus    → http://localhost:9090
+#   Grafana       → http://localhost:3000  (admin / admin)
+# ============================================================
+
+services:
+
+  # ── FastAPI: servicio instrumentado con Prometheus ──────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: cf-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=dev
+      - APP_VERSION=1.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Prometheus: recolector de métricas ──────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: cf-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'  # Retener 7 días de datos
+      - '--web.enable-lifecycle'             # Permite reload vía API
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - app
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Grafana: visualización de métricas ──────────────────────
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: cf-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/fastapi-dashboard.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Node Exporter: métricas del sistema operativo ───────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: cf-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - observability
+    restart: unless-stopped
+
+# ── Redes ────────────────────────────────────────────────────
+networks:
+  observability:
+    name: cf-observability
+    driver: bridge
+
+# ── Volúmenes persistentes ───────────────────────────────────
+volumes:
+  prometheus_data:
+    name: cf-prometheus-data
+  grafana_data:
+    name: cf-grafana-data
