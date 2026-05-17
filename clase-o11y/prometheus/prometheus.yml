@@ -74,6 +74,7 @@ scrape_configs:
   # ── 4. cAdvisor: métricas de contenedores Docker ────────────
   - job_name: 'cadvisor'
     scrape_interval: 15s
+    honor_timestamps: false
     metrics_path: '/metrics'
     static_configs:
       - targets: ['cadvisor:8080']
@@ -87,8 +88,4 @@ scrape_configs:
     #   container_network_transmit_bytes_total{name, interface}
     #   container_fs_reads_bytes_total{name}
     #   container_fs_writes_bytes_total{name}
-    # Filtro: only keep container metrics (drop host-level metrics)
-    metric_relabel_configs:
-      - source_labels: [__name__]
-        regex: 'container_.*'
-        action: keep
+
