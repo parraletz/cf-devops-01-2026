@@ -23,7 +23,7 @@
 
     {
       "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-      "description": "Número de contenedores corriendo en este momento",
+      "description": "Número de cgroups que no son del host (excluye system.slice, user.slice, init.scope, machine.slice). Incluye pods de Kubernetes/Minikube y contenedores Docker. Aproximadamente 1 contenedor real (cf-fastapi) + contenedores de minikube.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -51,7 +51,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus-uid" },
-          "expr": "count(container_last_seen{id=~\".*\\\\.scope.*\", job=\"cadvisor\"})",
+          "expr": "count(container_last_seen{id=~\".*\\\\.scope.*\",job=\"cadvisor\",id!~\"^/system\\\\.slice/docker-3d561fe040695cbfb52180efb7203021a4fe7267d237c3a611a37c4432323486\\\\.scope|^/user\\\\.slice|^/init\\\\.scope$|^/machine\\\\.slice$\"})",
           "legendFormat": "Contenedores",
           "refId": "A"
         }
