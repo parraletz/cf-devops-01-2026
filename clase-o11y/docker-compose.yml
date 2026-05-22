@@ -1,0 +1,155 @@
+# ============================================================
+# CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
+# Stack: FastAPI + Prometheus + Grafana + Node Exporter + cAdvisor
+#
+# Levantar el stack completo:
+#   docker compose up -d
+#
+# Ver logs:
+#   docker compose logs -f
+#
+# Detener y limpiar:
+#   docker compose down -v
+#
+# URLs:
+#   FastAPI app   → http://localhost:8000
+#   FastAPI docs  → http://localhost:8000/docs
+#   /metrics      → http://localhost:8000/metrics
+#   Prometheus    → http://localhost:9090
+#   Grafana       → http://localhost:3000  (admin / admin)
+#   cAdvisor      → http://localhost:8080
+#   Locust        → http://localhost:8089
+# ============================================================
+
+services:
+
+  # ── FastAPI: servicio instrumentado con Prometheus ──────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: cf-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=dev
+      - APP_VERSION=1.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Prometheus: recolector de métricas ──────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: cf-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'  # Retener 7 días de datos
+      - '--web.enable-lifecycle'             # Permite reload vía API
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - app
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Grafana: visualización de métricas ──────────────────────
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: cf-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/fastapi-dashboard.json
+    entrypoint: |
+      sh -c "mkdir -p /var/lib/grafana/dashboards && cp /etc/grafana/dashboards/* /var/lib/grafana/dashboards/ && /run.sh"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── cAdvisor: métricas de contenedores Docker ──────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cf-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Locust: pruebas de carga ────────────────────────────────
+  locust:
+    build:
+      context: ./locust
+      dockerfile: Dockerfile
+    container_name: cf-locust
+    ports:
+      - "8089:8089"
+    environment:
+      - LOCUST_WEB_HOST=0.0.0.0
+    depends_on:
+      - app
+    networks:
+      - observability
+    restart: unless-stopped
+
+  # ── Node Exporter: métricas del sistema operativo ───────────
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: cf-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - observability
+    restart: unless-stopped
+
+# ── Redes ────────────────────────────────────────────────────
+networks:
+  observability:
+    name: cf-observability
+    driver: bridge
+
+# ── Volúmenes persistentes ───────────────────────────────────
+volumes:
+  prometheus_data:
+    name: cf-prometheus-data
+  grafana_data:
+    name: cf-grafana-data

@@ -1,0 +1,26 @@
+# ============================================================
+# CLASE 14 — Observabilidad · Código Facilito DevOps Bootcamp
+# Grafana Provisioning: Dashboard loader
+#
+# Le dice a Grafana dónde encontrar los archivos JSON de dashboards.
+# Los dashboards en /var/lib/grafana/dashboards/ se cargan
+# automáticamente al arrancar Grafana.
+# ============================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'cf-dashboards'
+    orgId: 1
+    # Tipo de proveedor: file = leer desde el filesystem
+    type: file
+    # Desactivar que el usuario pueda mover dashboards en la UI
+    disableDeletion: false
+    # Recargar si el archivo JSON cambia en disco
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      # Carpeta donde están los JSON de dashboards
+      path: /var/lib/grafana/dashboards
+      # Buscar en subdirectorios también
+      foldersFromFilesStructure: false
